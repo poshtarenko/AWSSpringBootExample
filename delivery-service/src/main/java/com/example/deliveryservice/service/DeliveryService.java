@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.example.deliveryservice.domain.DeliveryStatus.*;
 
@@ -25,7 +27,7 @@ public class DeliveryService {
     private final DeliveryRepository deliveryRepository;
     private final UpdateOrderStatusEventProducer updateOrderStatusEventProducer;
 
-    private static final int DELIVERY_PREPARATION_DURATION_MS = 7000;
+    private static final int DELIVERY_PREPARATION_DURATION_MS = 15000;
     private static final int DELIVERY_SHIPPING_DURATION_MS = 10000;
 
     @Transactional
@@ -45,7 +47,10 @@ public class DeliveryService {
     @Transactional
     @Scheduled(fixedRate = DELIVERY_PREPARATION_DURATION_MS)
     public void startShipping() {
-        List<Delivery> deliveries = deliveryRepository.findByStatus(PREPARATION);
+
+        List<Delivery> deliveries = StreamSupport.stream(deliveryRepository.findAll().spliterator(), false)
+                .filter(delivery -> PREPARATION.equals(delivery.getStatus()))
+                .toList();
         deliveries.forEach(delivery -> {
             delivery.setStatus(ON_THE_WAY);
             deliveryRepository.save(delivery);
@@ -57,9 +62,12 @@ public class DeliveryService {
     @Transactional
     @Scheduled(fixedRate = DELIVERY_SHIPPING_DURATION_MS)
     public void completeShipping() {
-        List<Delivery> deliveries = deliveryRepository.findByStatus(ON_THE_WAY);
+        List<Delivery> deliveries = StreamSupport.stream(deliveryRepository.findAll().spliterator(), false)
+                .filter(delivery -> ON_THE_WAY.equals(delivery.getStatus()))
+                .toList();
         deliveries.forEach(delivery -> {
             delivery.setStatus(DELIVERED);
+            deliveryRepository.save(delivery);
             UpdateOrderStatusEvent event = new UpdateOrderStatusEvent(delivery.getOrderId(), OrderStatus.DELIVERED);
             updateOrderStatusEventProducer.sendEvent(event);
         });

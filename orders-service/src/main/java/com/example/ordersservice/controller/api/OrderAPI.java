@@ -20,7 +20,7 @@ public interface OrderAPI {
             @ApiResponse(
                     responseCode = "500", description = "Server error",
                     content = @Content)})
-    Order get(Long id);
+    Order get(String id);
 
     @Operation(summary = "Create order")
     @ApiResponses(value = {

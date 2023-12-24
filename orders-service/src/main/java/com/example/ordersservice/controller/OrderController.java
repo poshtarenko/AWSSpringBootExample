@@ -18,7 +18,7 @@ public class OrderController implements OrderAPI {
     private final OrderService orderService;
 
     @GetMapping(ORDER_GET_URL + "/{id}")
-    public Order get(@PathVariable Long id) {
+    public Order get(@PathVariable String id) {
         return orderService.get(id);
     }
 

@@ -8,16 +8,14 @@ spring:
         secret-key: ${AWS_SECRETKEY}
       region:
         static: eu-north-1
-  datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/delivery-service-db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-  liquibase:
-    enabled: true
+
+amazon:
+  aws:
+    accesskey: ${AWS_ACCESSKEY}
+    secretkey: ${AWS_SECRETKEY}
+  dynamodb:
+    endpoint: dynamodb.eu-north-1.amazonaws.com
+
 
 queues:
   order-creation-delivery:

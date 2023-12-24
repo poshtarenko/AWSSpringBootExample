@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class OrderCreationEvent {
-    Long id;
+    String id;
     String product;
     String category;
     BigDecimal price;

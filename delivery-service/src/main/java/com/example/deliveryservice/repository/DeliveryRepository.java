@@ -1,17 +1,9 @@
 package com.example.deliveryservice.repository;
 
 import com.example.deliveryservice.domain.Delivery;
-import com.example.deliveryservice.domain.DeliveryStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
 
-import java.util.List;
-
-@Repository
-public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
-
-    List<Delivery> findByStatus(DeliveryStatus status);
-
-    Delivery findByOrderId(Long orderId);
-
+@EnableScan
+public interface DeliveryRepository extends CrudRepository<Delivery, String> {
 }

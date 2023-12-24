@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UpdateOrderStatusEvent {
-    Long id;
+    String id;
     OrderStatus status;
 }
