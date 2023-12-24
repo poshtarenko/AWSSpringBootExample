@@ -1,4 +1,11 @@
 spring:
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESSKEY}
+        secret-key: ${AWS_SECRETKEY}
+      region:
+        static: eu-north-1
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/orders-service-db}
     username: ${DB_USERNAME:postgres}
@@ -9,37 +16,15 @@ spring:
       ddl-auto: validate
   liquibase:
     enabled: true
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    producer:
-      keySerializer: "org.apache.kafka.common.serialization.StringSerializer"
-      valueSerializer: "io.confluent.kafka.serializers.KafkaAvroSerializer"
-      properties:
-        schema:
-          registry:
-            url: ${KAFKA_SCHEMA_REGISTRY_URL:http://localhost:8081}
-    listener:
-      ack-mode: manual-immediate
-    consumer:
-      group-id: "ORDERS_SERVICE_GROUP"
-      enable-auto-commit: false
-      keyDeserializer: "org.apache.kafka.common.serialization.StringDeserializer"
-      valueDeserializer: "io.confluent.kafka.serializers.KafkaAvroDeserializer"
-      autoOffsetReset: "earliest"
-      properties:
-        schema:
-          registry:
-            url: ${KAFKA_SCHEMA_REGISTRY_URL:http://localhost:8081}
-        specific:
-          avro:
-            reader: "true"
 
-avro:
-  topic:
-    name: "spring.boot.stock.history.avro.topic.v1"
-
-topic-names:
-  order-creation: order-creation
-  change-order-destination: change-order-destination
-  update-order-status: update-order-status
+queues:
+  order-creation-delivery:
+    name: OrderCreationDeliveryQueue
+    url: https://sqs.eu-north-1.amazonaws.com/465248673675/OrderCreationDeliveryQueue
+  order-creation-reports:
+    name: OrderCreationReportsQueue
+    url: https://sqs.eu-north-1.amazonaws.com/465248673675/OrderCreationReportsQueue
+  order-update-status:
+    name: OrderUpdateStatusQueue
+    url: https://sqs.eu-north-1.amazonaws.com/465248673675/OrderUpdateStatusQueue
 

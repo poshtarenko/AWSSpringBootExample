@@ -1,10 +1,12 @@
 package com.example.deliveryservice.messaging.producer;
 
-import com.example.common.messaging.models.UpdateOrderStatusEvent;
+import com.example.deliveryservice.messaging.events.UpdateOrderStatusEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,30 +15,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UpdateOrderStatusEventProducer {
 
-    private final KafkaTemplate<String, UpdateOrderStatusEvent> kafkaTemplate;
+    private final SqsTemplate sqsTemplate;
+    private final ObjectMapper objectMapper;
 
-    @Value("${topic-names.update-order-status}")
-    private String updateOrderStatusTopic;
+    @Value("${queues.order-update-status.url}")
+    private String queueUrl;
 
     @Transactional
-    public void sendEvent(UpdateOrderStatusEvent event) {
-        sendEvent(updateOrderStatusTopic, event);
+    public void sendEvent(UpdateOrderStatusEvent orderEvent) {
+        sendEvent(queueUrl, orderEvent);
     }
 
     @Transactional
-    public void sendEvent(String topic, UpdateOrderStatusEvent event) {
+    @SneakyThrows
+    public void sendEvent(String queue, UpdateOrderStatusEvent event) {
         log.info("Sending update order status event : " + event);
-        var completableFuture = kafkaTemplate.send(topic, event);
-        completableFuture.whenComplete(
-                ((sendResult, throwable) -> {
-                    if (throwable != null) {
-                        log.warn("Error while sending event " + event);
-                    } else {
-                        log.info("Event sent successfully for the value {}, partition {}",
-                                event, sendResult.getRecordMetadata().partition());
-                    }
-                })
-        );
+        String msg = objectMapper.writeValueAsString(event);
+        sqsTemplate.send(queue, msg);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.example.ordersservice.domain;
+package com.example.deliveryservice.messaging.events;
 
 public enum OrderStatus {
     CREATED,

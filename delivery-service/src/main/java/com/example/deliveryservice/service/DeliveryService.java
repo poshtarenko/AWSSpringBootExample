@@ -1,10 +1,9 @@
 package com.example.deliveryservice.service;
 
-import com.example.common.messaging.models.ChangeOrderDestinationEvent;
-import com.example.common.messaging.models.OrderCreationEvent;
-import com.example.common.messaging.models.OrderStatus;
-import com.example.common.messaging.models.UpdateOrderStatusEvent;
 import com.example.deliveryservice.domain.Delivery;
+import com.example.deliveryservice.messaging.events.OrderCreationEvent;
+import com.example.deliveryservice.messaging.events.OrderStatus;
+import com.example.deliveryservice.messaging.events.UpdateOrderStatusEvent;
 import com.example.deliveryservice.messaging.producer.UpdateOrderStatusEventProducer;
 import com.example.deliveryservice.repository.DeliveryRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,32 +30,16 @@ public class DeliveryService {
 
     @Transactional
     public void startDelivery(OrderCreationEvent event) {
-        validateDestination(event.getDeliveryDestination().toString());
+        validateDestination(event.getDeliveryDestination());
         Delivery delivery = Delivery.builder()
                 .orderId(event.getId())
-                .product(event.getProduct().toString())
-                .customerName(event.getCustomerName().toString())
-                .destination(event.getDeliveryDestination().toString())
+                .product(event.getProduct())
+                .customerName(event.getCustomerName())
+                .destination(event.getDeliveryDestination())
                 .status(PREPARATION)
                 .createdAt(LocalDateTime.now())
                 .build();
         deliveryRepository.save(delivery);
-    }
-
-    @Transactional
-    public void changeDeliveryDestination(ChangeOrderDestinationEvent event) {
-        validateDestination(event.getDeliveryDestination().toString());
-        Delivery delivery = deliveryRepository.findByOrderId(event.getId());
-        if (ON_THE_WAY.equals(delivery.getStatus())) {
-            throw new RuntimeException("Delivery already in process, can't change destination");
-        }
-        if (DELIVERED.equals(delivery.getStatus())) {
-            throw new RuntimeException("Delivery already completed");
-        }
-        if (event.getDeliveryDestination().toString().equals(delivery.getDestination())) {
-            throw new RuntimeException("Trying change destination to same one");
-        }
-        delivery.setDestination(event.getDeliveryDestination().toString());
     }
 
     @Transactional

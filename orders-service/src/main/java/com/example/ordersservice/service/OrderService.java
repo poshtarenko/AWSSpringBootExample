@@ -1,12 +1,10 @@
 package com.example.ordersservice.service;
 
-import com.example.common.messaging.models.ChangeOrderDestinationEvent;
-import com.example.common.messaging.models.OrderCreationEvent;
-import com.example.common.messaging.models.UpdateOrderStatusEvent;
 import com.example.ordersservice.domain.Order;
 import com.example.ordersservice.domain.OrderStatus;
-import com.example.ordersservice.dto.ChangeOrderDestinationDto;
 import com.example.ordersservice.dto.CreateOrderDto;
+import com.example.ordersservice.messaging.events.OrderCreationEvent;
+import com.example.ordersservice.messaging.events.UpdateOrderStatusEvent;
 import com.example.ordersservice.messaging.producer.OrderEventProducer;
 import com.example.ordersservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,21 +47,6 @@ public class OrderService {
     }
 
     @Transactional
-    public Order changeDestination(ChangeOrderDestinationDto request) {
-        Order order = orderRepository.findById(request.orderId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        if (order.getDeliveryDestination().equals(request.destination())) {
-            throw new RuntimeException("Same destination");
-        }
-        order.setDeliveryDestination(request.destination());
-        Order updatedOrder = orderRepository.save(order);
-        ChangeOrderDestinationEvent event = buildChangeOrderDestinationEvent(updatedOrder);
-        orderEventProducer.sendChangeOrderDestinationEvent(event);
-        return updatedOrder;
-    }
-
-    @Transactional
     public void updateStatus(UpdateOrderStatusEvent event) {
         Order order = orderRepository.findById(event.getId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -82,23 +65,17 @@ public class OrderService {
     }
 
     private OrderCreationEvent buildOrderCreationEvent(Order order) {
-        return OrderCreationEvent.newBuilder()
-                .setId(order.getId())
-                .setProduct(order.getProduct())
-                .setCategory(order.getCategory())
-                .setPrice(order.getPrice().toString())
-                .setCustomerName(order.getCustomerName())
-                .setDeliveryDestination(order.getDeliveryDestination())
-                .setStatus(com.example.common.messaging.models.OrderStatus.valueOf(order.getStatus().name()))
-                .setIsCompleted(order.getIsCompleted())
-                .setCompletedAt(order.getCompletedAt())
+        return OrderCreationEvent.builder()
+                .id(order.getId())
+                .product(order.getProduct())
+                .category(order.getCategory())
+                .price(order.getPrice())
+                .customerName(order.getCustomerName())
+                .deliveryDestination(order.getDeliveryDestination())
+                .status(order.getStatus())
+                .isCompleted(order.getIsCompleted())
+                .completedAt(order.getCompletedAt())
                 .build();
     }
 
-    private ChangeOrderDestinationEvent buildChangeOrderDestinationEvent(Order order) {
-        return ChangeOrderDestinationEvent.newBuilder()
-                .setId(order.getId())
-                .setDeliveryDestination(order.getDeliveryDestination())
-                .build();
-    }
 }

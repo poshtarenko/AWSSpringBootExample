@@ -1,11 +1,12 @@
 package com.example.reportsservice.messaging.listener;
 
-import com.example.common.messaging.models.OrderCreationEvent;
+import com.example.reportsservice.messaging.events.OrderCreationEvent;
 import com.example.reportsservice.service.ProductSalesReportService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,13 +14,15 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OrderEventListener {
 
+    private final ObjectMapper objectMapper;
     private final ProductSalesReportService productSalesReportService;
 
-    @KafkaListener(topics = "${topic-names.order-creation}", groupId = "${spring.kafka.consumer.group-id}")
-    void onOrderCreatedEvent(OrderCreationEvent event, Acknowledgment acknowledgment) {
-        log.info("Got update order status event : " + event);
+    @SqsListener("${queues.order-creation-reports.name}")
+    @SneakyThrows
+    public void onOrderCreatedEvent(String message) {
+        OrderCreationEvent event = objectMapper.readValue(message, OrderCreationEvent.class);
+        log.info("Got message : " + message);
         productSalesReportService.updateReport(event);
-        acknowledgment.acknowledge();
     }
 
 }

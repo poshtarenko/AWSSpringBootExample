@@ -1,7 +1,6 @@
 package com.example.ordersservice.controller.api;
 
 import com.example.ordersservice.domain.Order;
-import com.example.ordersservice.dto.ChangeOrderDestinationDto;
 import com.example.ordersservice.dto.CreateOrderDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,17 +33,5 @@ public interface OrderAPI {
                     responseCode = "500", description = "Server error",
                     content = @Content)})
     Order create(CreateOrderDto request);
-
-    @Operation(summary = "Change order destination")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200", description = "Order destination changed",
-                    content = {@Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = Order.class))}),
-            @ApiResponse(
-                    responseCode = "500", description = "Server error",
-                    content = @Content)})
-    Order changeDestination(ChangeOrderDestinationDto request);
 
 }

@@ -1,8 +1,7 @@
 package com.example.reportsservice.service;
 
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.example.common.messaging.models.OrderCreationEvent;
 import com.example.reportsservice.domain.ProductSalesReport;
+import com.example.reportsservice.messaging.events.OrderCreationEvent;
 import com.example.reportsservice.repository.ProductSalesReportRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -44,9 +43,9 @@ public class ProductSalesReportService {
     }
 
     @Transactional
-    public void updateReport(OrderCreationEvent orderCreationEvent) {
-        String productName = orderCreationEvent.getProduct().toString();
-        String customer = orderCreationEvent.getCustomerName().toString();
+    public void updateReport(OrderCreationEvent event) {
+        String productName = event.getProduct();
+        String customer = event.getCustomerName();
 
         Optional<ProductSalesReport> reportOpt = productSalesReportRepository.findById(productName);
         ProductSalesReport report;
